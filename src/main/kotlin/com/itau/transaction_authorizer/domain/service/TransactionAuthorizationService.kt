@@ -3,7 +3,6 @@ package com.itau.transaction_authorizer.domain.service
 import com.itau.transaction_authorizer.domain.core.aggregate.Account
 import com.itau.transaction_authorizer.domain.core.entity.Transaction
 import com.itau.transaction_authorizer.domain.core.valueobject.AccountId
-import com.itau.transaction_authorizer.domain.core.valueobject.AccountOwnerId
 import com.itau.transaction_authorizer.domain.core.valueobject.Money
 import com.itau.transaction_authorizer.domain.core.valueobject.TransactionType
 import com.itau.transaction_authorizer.domain.core.valueobject.TransactionType.CREDIT
@@ -25,7 +24,6 @@ class TransactionAuthorizationService(
      * Autoriza uma transação (CREDIT ou DEBIT).
      *
      * @param accountId ID da conta
-     * @param accountOwnerId ID do titular
      * @param type Tipo de transação
      * @param amount Valor
      * @return Transaction autorizada ou rejeitada
@@ -34,25 +32,23 @@ class TransactionAuthorizationService(
      */
     override fun authorize(
         accountId: AccountId,
-        accountOwnerId: AccountOwnerId,
         type: TransactionType,
         amount: Money
     ): Transaction {
         return when (type) {
-            CREDIT -> authorizeCredit(accountId = accountId, accountOwnerId = accountOwnerId, amount = amount)
-            DEBIT -> authorizeDebit(accountId = accountId, accountOwnerId = accountOwnerId, amount = amount)
+            CREDIT -> authorizeCredit(accountId = accountId, amount = amount)
+            DEBIT -> authorizeDebit(accountId = accountId, amount = amount)
         }
     }
 
     private fun authorizeCredit(
         accountId: AccountId,
-        accountOwnerId: AccountOwnerId,
         amount: Money
     ): Transaction {
         validateAmount(amount = amount)
         val account = getAccount(accountId = accountId)
 
-        val transaction = account.authorizeCredit(ownerId = accountOwnerId, amount = amount)
+        val transaction = account.authorizeCredit(accountId = accountId, amount = amount)
 
         accountRepository.update(account = account)
         transactionRepository.save(transaction = transaction)
@@ -62,13 +58,12 @@ class TransactionAuthorizationService(
 
     private fun authorizeDebit(
         accountId: AccountId,
-        accountOwnerId: AccountOwnerId,
         amount: Money
     ): Transaction {
         validateAmount(amount = amount)
         val account = getAccount(accountId = accountId)
 
-        val transaction = account.authorizeDebit(ownerId = accountOwnerId, amount = amount)
+        val transaction = account.authorizeDebit(accountId = accountId, amount = amount)
 
         accountRepository.update(account = account)
         transactionRepository.save(transaction = transaction)

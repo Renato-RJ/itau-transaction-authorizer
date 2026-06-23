@@ -1,6 +1,6 @@
 package com.itau.transaction_authorizer.domain.core.entity
 
-import com.itau.transaction_authorizer.domain.core.valueobject.AccountOwnerId
+import com.itau.transaction_authorizer.domain.core.valueobject.AccountId
 import com.itau.transaction_authorizer.domain.core.valueobject.Money
 import com.itau.transaction_authorizer.domain.core.valueobject.TransactionId
 import com.itau.transaction_authorizer.domain.core.valueobject.TransactionStatus
@@ -13,7 +13,7 @@ import java.time.Instant.now
 
 data class Transaction(
     val id: TransactionId,
-    val accountOwnerId: AccountOwnerId,
+    val accountId: AccountId,
     val type: TransactionType,
     val amount: Money,
     val status: TransactionStatus,

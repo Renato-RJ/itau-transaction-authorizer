@@ -10,12 +10,15 @@ import com.itau.transaction_authorizer.domain.core.valueobject.TransactionType.C
 import com.itau.transaction_authorizer.domain.core.valueobject.TransactionType.DEBIT
 import com.itau.transaction_authorizer.domain.exception.InvalidAmountException
 import java.math.BigDecimal.ZERO
+import java.time.Instant
 
 class Account(
     val id: AccountId,
-    val ownerId: AccountOwnerId,
-    var balance: Money = Money.zero()
-) {
+    val owner: AccountOwnerId,
+    var balance: Money,
+    val createdAt: Instant,
+    val status: String
+    ) {
     init {
         require(balance.amount >= ZERO) {
             "Saldo da conta não pode ser negativo: ${balance.amount}"
@@ -25,20 +28,20 @@ class Account(
     /**
      * Autoriza uma transação de CRÉDITO (adição de fundos).
      *
-     * @param ownerId ID do titular que solicitou a transação
+     * @param accountId ID da conta
      * @param amount Valor a ser creditado
      * @return Transaction autorizada
      * @throws InvalidAmountException se amount <= 0
      */
     fun authorizeCredit(
-        ownerId: AccountOwnerId,
+        accountId: AccountId,
         amount: Money
     ): Transaction {
         if(amount.amount <= ZERO) throw InvalidAmountException(amount.amount)
 
         return Transaction(
             id = TransactionId(),
-            accountOwnerId = ownerId,
+            accountId = accountId,
             type = CREDIT,
             amount = amount,
             status = PROCESSING
@@ -51,13 +54,13 @@ class Account(
     /**
      * Autoriza uma transação de DÉBITO (retirada de fundos).
      *
-     * @param ownerId ID do titular que solicitou a transação
+     * @param accountId ID da conta
      * @param amount Valor a ser debitado
      * @return Transaction (pode ser AUTHORIZED ou REJECTED)
      * @throws IllegalArgumentException se amount <= 0
      */
     fun authorizeDebit(
-        ownerId: AccountOwnerId,
+        accountId: AccountId,
         amount: Money
     ): Transaction {
         require(amount.amount > ZERO) {
@@ -66,7 +69,7 @@ class Account(
 
         val transaction = Transaction(
             id = TransactionId(),
-            accountOwnerId = ownerId,
+            accountId = accountId,
             type = DEBIT,
             amount = amount,
             status = PROCESSING
