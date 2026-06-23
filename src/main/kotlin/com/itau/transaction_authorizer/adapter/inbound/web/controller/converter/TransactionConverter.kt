@@ -6,12 +6,12 @@ import com.itau.transaction_authorizer.adapter.inbound.web.controller.response.R
 import com.itau.transaction_authorizer.adapter.inbound.web.controller.response.Response.Status.SUCCEEDED
 import com.itau.transaction_authorizer.domain.core.entity.Transaction
 import com.itau.transaction_authorizer.domain.core.valueobject.AccountId
-import com.itau.transaction_authorizer.domain.core.valueobject.AccountOwnerId
 import com.itau.transaction_authorizer.domain.core.valueobject.Currency
 import com.itau.transaction_authorizer.domain.core.valueobject.Money
 import com.itau.transaction_authorizer.domain.core.valueobject.TransactionType
 import com.itau.transaction_authorizer.domain.core.valueobject.factory.ValueObjectFactory
 import java.math.BigDecimal
+import java.time.ZoneOffset
 
 object TransactionConverter {
 
@@ -28,16 +28,16 @@ object TransactionConverter {
                 transaction = Response.Transaction(
                     id = id.value,
                     type = type.name,
-                    amount = Response.CurrencyAmount(
-                        amount = amount.amount,
+                    amount = Response.CurrencyValue(
+                        value = amount.amount,
                         currency = amount.currency.name
                     ),
-                    status = if (status.name == "APPROVED") SUCCEEDED else FAILED,
-                    timestamp = timestamp,
+                    status = if (status.name == "AUTHORIZED") SUCCEEDED else FAILED,
+                    timestamp = timestamp.atZone(ZoneOffset.of("-03:00")),
                 ),
                 account = Response.Account(
                     id = accountId.value,
-                    balance = Response.CurrencyAmount(
+                    balance = Response.Balance(
                         amount = amount.amount,
                         currency = amount.currency.name
                     )
