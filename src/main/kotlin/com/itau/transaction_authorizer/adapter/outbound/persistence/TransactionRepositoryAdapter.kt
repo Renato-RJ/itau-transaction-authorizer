@@ -2,6 +2,8 @@ package com.itau.transaction_authorizer.adapter.outbound.persistence
 
 import com.itau.transaction_authorizer.domain.core.entity.Transaction
 import com.itau.transaction_authorizer.domain.port.outbound.TransactionRepositoryPort
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker
+import io.github.resilience4j.retry.annotation.Retry
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
 import org.springframework.stereotype.Repository
@@ -13,6 +15,8 @@ class TransactionRepositoryAdapter(
     private val jdbc: NamedParameterJdbcTemplate
 ) : TransactionRepositoryPort {
 
+    @Retry(name = "postgresWrite")
+    @CircuitBreaker(name = "postgresDb")
     @Transactional
     override fun save(transaction: Transaction) {
         val sql = """
@@ -33,7 +37,3 @@ class TransactionRepositoryAdapter(
         jdbc.update(sql, params)
     }
 }
-
-
-
-
