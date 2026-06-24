@@ -1,9 +1,11 @@
 package com.itau.transaction_authorizer.domain.exception
 
+import com.itau.transaction_authorizer.domain.core.entity.Transaction
 import com.itau.transaction_authorizer.domain.core.valueobject.Money
 
 class InsufficientBalanceException(
-    availableBalance: Money,
+    val availableBalance: Money,
+    val transaction: Transaction,
     requestedAmount: Money
 ) : DomainException(
     "Saldo insuficiente. " +

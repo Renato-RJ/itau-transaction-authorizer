@@ -83,8 +83,9 @@ class AccountRepositoryAdapter(
                     psqlException.serverErrorMessage?.detail?.toBigDecimal() ?: ZERO
 
                 throw InsufficientBalanceException(
-                    Money.of(amount = currentBalance, currency = BRL),
-                    transaction.amount
+                    availableBalance = Money.of(amount = currentBalance, currency = BRL),
+                    requestedAmount = transaction.amount,
+                    transaction = transaction
                 )
             }
             throw ex
