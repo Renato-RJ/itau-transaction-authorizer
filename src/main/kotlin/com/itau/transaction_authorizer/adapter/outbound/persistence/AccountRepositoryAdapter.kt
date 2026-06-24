@@ -12,6 +12,7 @@ import com.itau.transaction_authorizer.domain.port.outbound.AccountRepositoryPor
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker
 import io.github.resilience4j.retry.annotation.Retry
 import org.postgresql.util.PSQLException
+import org.slf4j.LoggerFactory
 import org.springframework.dao.DataAccessException
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
@@ -26,6 +27,8 @@ import java.time.ZoneOffset.UTC
 class AccountRepositoryAdapter(
     private val jdbc: NamedParameterJdbcTemplate
 ) : AccountRepositoryPort {
+
+    private val log = LoggerFactory.getLogger(AccountRepositoryAdapter::class.java)
 
     @Retry(name = "postgresRead")
     @CircuitBreaker(name = "postgresDb")
@@ -43,7 +46,9 @@ class AccountRepositoryAdapter(
             mapRow(rs)
         }
 
-        return rows.firstOrNull()
+        val result = rows.firstOrNull()
+        log.info("db_result operation=findById accountId={} found={}", accountId.value, result != null)
+        return result
     }
 
     @Retry(name = "postgresWrite")
@@ -64,6 +69,7 @@ class AccountRepositoryAdapter(
             .addValue("status", account.status)
 
         jdbc.update(sql, params)
+        log.info("db_insert_ok operation=saveAccount accountId={}", account.id.value)
     }
 
     @CircuitBreaker(name = "postgresDb")
@@ -85,9 +91,15 @@ class AccountRepositoryAdapter(
             val psqlException = ex.rootCause as? PSQLException
 
             if (psqlException?.serverErrorMessage?.message == "Insufficient funds") {
-
                 val currentBalance =
                     psqlException.serverErrorMessage?.detail?.toBigDecimal() ?: ZERO
+
+                log.warn(
+                    "db_call_rejected operation=applyTransaction accountId={} transactionId={} reason=insufficient_funds available={}",
+                    accountId.value,
+                    transaction.id.value,
+                    currentBalance
+                )
 
                 throw InsufficientBalanceException(
                     availableBalance = Money.of(amount = currentBalance, currency = BRL),
@@ -95,8 +107,21 @@ class AccountRepositoryAdapter(
                     transaction = transaction
                 )
             }
+            log.error(
+                "db_call_error operation=applyTransaction accountId={} transactionId={} error={}",
+                accountId.value,
+                transaction.id.value,
+                ex.message
+            )
             throw ex
         }
+
+        log.info(
+            "db_call_ok operation=applyTransaction accountId={} transactionId={} newBalance={}",
+            accountId.value,
+            transaction.id.value,
+            result
+        )
         return result
     }
 

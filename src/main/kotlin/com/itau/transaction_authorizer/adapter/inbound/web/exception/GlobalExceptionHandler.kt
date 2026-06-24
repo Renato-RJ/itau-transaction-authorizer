@@ -8,6 +8,7 @@ import com.itau.transaction_authorizer.domain.exception.InsufficientBalanceExcep
 import com.itau.transaction_authorizer.domain.exception.InvalidAmountException
 import com.itau.transaction_authorizer.domain.exception.InvalidTransactionException
 import org.slf4j.LoggerFactory
+import org.slf4j.MDC
 import org.springframework.http.HttpStatus.BAD_REQUEST
 import org.springframework.http.HttpStatus.CONFLICT
 import org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR
@@ -35,9 +36,10 @@ class GlobalExceptionHandler {
         }
 
         log.warn(
-            "domain_exception type={} code={} message={}",
+            "domain_exception traceId={} type={} code={} message={}",
+            MDC.get("traceId"),
             ex::class.simpleName,
-            if (response is ErrorResponse) response.code else "{}",
+            if (response is ErrorResponse) response.code else "N/A",
             ex.message
         )
 
@@ -46,7 +48,11 @@ class GlobalExceptionHandler {
 
     @ExceptionHandler(IllegalArgumentException::class)
     fun handleIllegalArgument(ex: IllegalArgumentException): ResponseEntity<ErrorResponse> {
-        log.error("illegal_argument_exception message={}", ex.message)
+        log.error(
+            "illegal_argument_exception traceId={} message={}",
+            MDC.get("traceId"),
+            ex.message
+        )
         return ResponseEntity.status(BAD_REQUEST).body(
             ErrorResponse(message = "Dados da requisição inválidos", code = "INVALID_REQUEST")
         )
@@ -54,11 +60,15 @@ class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception::class)
     fun handleGenericException(ex: Exception): ResponseEntity<ErrorResponse> {
-        log.error("unexpected_exception type={} message={}", ex::class.simpleName, ex.message, ex)
+        log.error(
+            "unexpected_exception traceId={} type={} message={}",
+            MDC.get("traceId"),
+            ex::class.simpleName,
+            ex.message,
+            ex
+        )
         return ResponseEntity.status(INTERNAL_SERVER_ERROR).body(
             ErrorResponse(message = "Erro interno do servidor", code = "INTERNAL_SERVER_ERROR")
         )
     }
 }
-
-
