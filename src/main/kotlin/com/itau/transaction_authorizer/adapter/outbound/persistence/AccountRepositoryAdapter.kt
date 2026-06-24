@@ -4,15 +4,17 @@ import com.itau.transaction_authorizer.domain.core.aggregate.Account
 import com.itau.transaction_authorizer.domain.core.entity.Transaction
 import com.itau.transaction_authorizer.domain.core.valueobject.AccountId
 import com.itau.transaction_authorizer.domain.core.valueobject.AccountOwnerId
-import com.itau.transaction_authorizer.domain.core.valueobject.Money
 import com.itau.transaction_authorizer.domain.core.valueobject.Currency
 import com.itau.transaction_authorizer.domain.core.valueobject.Currency.BRL
+import com.itau.transaction_authorizer.domain.core.valueobject.Money
 import com.itau.transaction_authorizer.domain.exception.InsufficientBalanceException
 import com.itau.transaction_authorizer.domain.port.outbound.AccountRepositoryPort
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker
+import io.github.resilience4j.retry.annotation.Retry
 import org.postgresql.util.PSQLException
 import org.springframework.dao.DataAccessException
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
 import org.springframework.stereotype.Repository
 import org.springframework.transaction.annotation.Transactional
 import java.math.BigDecimal
@@ -25,6 +27,8 @@ class AccountRepositoryAdapter(
     private val jdbc: NamedParameterJdbcTemplate
 ) : AccountRepositoryPort {
 
+    @Retry(name = "postgresRead")
+    @CircuitBreaker(name = "postgresDb")
     @Transactional(readOnly = true)
     override fun findById(accountId: AccountId): Account? {
         val sql = """
@@ -42,6 +46,8 @@ class AccountRepositoryAdapter(
         return rows.firstOrNull()
     }
 
+    @Retry(name = "postgresWrite")
+    @CircuitBreaker(name = "postgresDb")
     @Transactional
     override fun save(account: Account) {
         val sql = """
@@ -60,6 +66,7 @@ class AccountRepositoryAdapter(
         jdbc.update(sql, params)
     }
 
+    @CircuitBreaker(name = "postgresDb")
     @Transactional
     override fun applyTransaction(accountId: AccountId, transaction: Transaction): BigDecimal {
         val sql = "SELECT * FROM process_account_transaction(:id, :amount, :currency, :type)"
@@ -73,7 +80,7 @@ class AccountRepositoryAdapter(
         val result: BigDecimal
 
         try {
-          result = jdbc.queryForObject(sql, params) { rs, _ -> rs.getBigDecimal(1) } ?: ZERO
+            result = jdbc.queryForObject(sql, params) { rs, _ -> rs.getBigDecimal(1) } ?: ZERO
         } catch (ex: DataAccessException) {
             val psqlException = ex.rootCause as? PSQLException
 
@@ -110,9 +117,3 @@ class AccountRepositoryAdapter(
         )
     }
 }
-
-
-
-
-
-
