@@ -32,6 +32,7 @@ class TransactionAuthorizationService(
      * @throws AccountNotFoundException se conta não existe
      * @throws InvalidAmountException se amount <= 0
      */
+    @Transactional
     override fun authorize(
         transactionId: String,
         accountId: AccountId,
@@ -44,7 +45,6 @@ class TransactionAuthorizationService(
         }
     }
 
-    @Transactional
     private fun authorizeCredit(
         transactionId: String,
         accountId: AccountId,
@@ -61,7 +61,6 @@ class TransactionAuthorizationService(
         return Pair(transaction, Money.of(amount = balance, currency = transaction.amount.currency))
     }
 
-    @Transactional
     private fun authorizeDebit(
         transactionId: String,
         accountId: AccountId,
