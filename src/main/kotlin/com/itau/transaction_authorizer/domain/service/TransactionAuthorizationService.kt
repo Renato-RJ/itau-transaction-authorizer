@@ -13,6 +13,7 @@ import com.itau.transaction_authorizer.domain.port.inbound.TransactionAuthorizer
 import com.itau.transaction_authorizer.domain.port.outbound.AccountRepositoryPort
 import com.itau.transaction_authorizer.domain.port.outbound.TransactionRepositoryPort
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import java.math.BigDecimal.ZERO
 
 @Service
@@ -34,41 +35,42 @@ class TransactionAuthorizationService(
         accountId: AccountId,
         type: TransactionType,
         amount: Money
-    ): Transaction {
+    ): Pair<Transaction, Money> {
         return when (type) {
             CREDIT -> authorizeCredit(accountId = accountId, amount = amount)
             DEBIT -> authorizeDebit(accountId = accountId, amount = amount)
         }
     }
-
+    @Transactional
     private fun authorizeCredit(
         accountId: AccountId,
         amount: Money
-    ): Transaction {
+    ): Pair<Transaction, Money> {
         validateAmount(amount = amount)
         val account = getAccount(accountId = accountId)
 
         val transaction = account.authorizeCredit(accountId = accountId, amount = amount)
 
-        accountRepository.update(account = account)
+        val balance = accountRepository.applyTransaction(accountId = accountId, transaction = transaction)
         transactionRepository.save(transaction = transaction)
 
-        return transaction
+        return Pair(transaction, Money.of(amount = balance, currency = transaction.amount.currency))
     }
 
+    @Transactional
     private fun authorizeDebit(
         accountId: AccountId,
         amount: Money
-    ): Transaction {
+    ): Pair<Transaction, Money> {
         validateAmount(amount = amount)
         val account = getAccount(accountId = accountId)
 
         val transaction = account.authorizeDebit(accountId = accountId, amount = amount)
 
-        accountRepository.update(account = account)
+        val balance = accountRepository.applyTransaction(accountId = accountId, transaction = transaction)
         transactionRepository.save(transaction = transaction)
 
-        return transaction
+        return Pair(transaction, Money.of(amount = balance, currency = transaction.amount.currency))
     }
 
     private fun getAccount(accountId: AccountId): Account {

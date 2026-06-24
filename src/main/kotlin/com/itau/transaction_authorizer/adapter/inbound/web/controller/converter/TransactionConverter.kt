@@ -12,6 +12,7 @@ import com.itau.transaction_authorizer.domain.core.valueobject.TransactionType
 import com.itau.transaction_authorizer.domain.core.valueobject.factory.ValueObjectFactory
 import java.math.BigDecimal
 import java.time.ZoneOffset
+import java.time.temporal.ChronoUnit.SECONDS
 
 object TransactionConverter {
 
@@ -22,8 +23,8 @@ object TransactionConverter {
         return Pair(accountId, transactionType)
     }
 
-    fun toResponse(transaction: Transaction): Response {
-        return with(transaction) {
+    fun toResponse(transaction: Pair<Transaction, Money>): Response {
+        return with(transaction.first) {
             Response(
                 transaction = Response.Transaction(
                     id = id.value,
@@ -33,12 +34,12 @@ object TransactionConverter {
                         currency = amount.currency.name
                     ),
                     status = if (status.name == "AUTHORIZED") SUCCEEDED else FAILED,
-                    timestamp = timestamp.atZone(ZoneOffset.of("-03:00")),
+                    timestamp = timestamp.atZone(ZoneOffset.of("-03:00")).truncatedTo(SECONDS),
                 ),
                 account = Response.Account(
                     id = accountId.value,
                     balance = Response.Balance(
-                        amount = amount.amount,
+                        amount = transaction.second.amount,
                         currency = amount.currency.name
                     )
                 )
