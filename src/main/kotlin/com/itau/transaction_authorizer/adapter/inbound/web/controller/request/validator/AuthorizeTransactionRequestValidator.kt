@@ -1,6 +1,7 @@
 package com.itau.transaction_authorizer.adapter.inbound.web.controller.request.validator
 
 import com.itau.transaction_authorizer.adapter.inbound.web.controller.request.AuthorizeTransactionRequest
+import com.itau.transaction_authorizer.domain.core.valueobject.Currency
 import java.math.BigDecimal
 
 object AuthorizeTransactionRequestValidator {
@@ -10,6 +11,7 @@ object AuthorizeTransactionRequestValidator {
         validateAccountOwnerId(request.accountOwnerId)
         validateTransactionType(request.type)
         validateAmount(request.amount)
+        validateCurrency(request.currency)
     }
 
     private fun validateAccountId(accountId: String) {
@@ -30,5 +32,11 @@ object AuthorizeTransactionRequestValidator {
     private fun validateAmount(amount: BigDecimal) {
         require(amount > BigDecimal.ZERO) { "amount deve ser maior que zero, recebido: $amount" }
     }
-}
 
+    private fun validateCurrency(currency: String) {
+        require(currency.isNotBlank()) { "currency não pode ser vazio" }
+        require(runCatching { Currency.valueOf(currency.uppercase()) }.isSuccess) {
+            "currency inválida: $currency. Use uma de ${Currency.entries.joinToString()}"
+        }
+    }
+}

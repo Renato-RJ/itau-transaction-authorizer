@@ -9,13 +9,16 @@ interface TransactionAuthorizer {
     /**
      * Autoriza uma transação
      *
+     * @param transactionId identificador externo da transação
      * @param accountId de uma conta
      * @param type da transação
      * @param amount da transação
      * @return Pair com a transação rejeitada ou aprovada e o saldo atualizado da conta
      */
-    fun authorize(accountId: AccountId,
-                  type: TransactionType,
-                  amount: Money
+    fun authorize(
+        transactionId: String,
+        accountId: AccountId,
+        type: TransactionType,
+        amount: Money
     ): Pair<Transaction, Money>
 }

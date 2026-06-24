@@ -28,19 +28,21 @@ class Account(
     /**
      * Autoriza uma transação de CRÉDITO (adição de fundos).
      *
+     * @param transactionId ID da transação
      * @param accountId ID da conta
      * @param amount Valor a ser creditado
      * @return Transaction autorizada
      * @throws InvalidAmountException se amount <= 0
      */
     fun authorizeCredit(
+        transactionId: String,
         accountId: AccountId,
         amount: Money
     ): Transaction {
         if(amount.amount <= ZERO) throw InvalidAmountException(amount.amount)
 
         return Transaction(
-            id = TransactionId(),
+            id = TransactionId(transactionId),
             accountId = accountId,
             type = CREDIT,
             amount = amount,
@@ -54,12 +56,14 @@ class Account(
     /**
      * Autoriza uma transação de DÉBITO (retirada de fundos).
      *
+     * @param transactionId ID da transação
      * @param accountId ID da conta
      * @param amount Valor a ser debitado
      * @return Transaction (pode ser AUTHORIZED ou REJECTED)
      * @throws IllegalArgumentException se amount <= 0
      */
     fun authorizeDebit(
+        transactionId: String,
         accountId: AccountId,
         amount: Money
     ): Transaction {
@@ -68,7 +72,7 @@ class Account(
         }
 
         val transaction = Transaction(
-            id = TransactionId(),
+            id = TransactionId(transactionId),
             accountId = accountId,
             type = DEBIT,
             amount = amount,

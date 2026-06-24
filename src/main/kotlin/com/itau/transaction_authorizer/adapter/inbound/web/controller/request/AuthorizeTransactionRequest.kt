@@ -6,6 +6,6 @@ data class AuthorizeTransactionRequest(
     val accountId: String,
     val accountOwnerId: String,
     val type: String,
-    val amount: BigDecimal
+    val amount: BigDecimal,
+    val currency: String
 )
-

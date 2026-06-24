@@ -1,7 +1,6 @@
 package com.itau.transaction_authorizer.domain.core.valueobject.factory
 
 import com.itau.transaction_authorizer.domain.core.valueobject.AccountId
-import com.itau.transaction_authorizer.domain.core.valueobject.AccountOwnerId
 import com.itau.transaction_authorizer.domain.core.valueobject.Currency
 import com.itau.transaction_authorizer.domain.core.valueobject.Money
 import com.itau.transaction_authorizer.domain.core.valueobject.TransactionType
@@ -22,9 +21,15 @@ object ValueObjectFactory {
         }
     }
 
+    fun createCurrency(value: String): Currency {
+        return try {
+            Currency.valueOf(value.uppercase())
+        } catch (_: IllegalArgumentException) {
+            throw IllegalArgumentException("Moeda inválida: $value. Use uma de ${Currency.entries.joinToString()}")
+        }
+    }
+
     fun createMoney(amount: BigDecimal, currency: Currency): Money {
         return Money.of(amount = amount, currency = currency)
     }
 }
-
-

@@ -16,11 +16,12 @@ import java.time.temporal.ChronoUnit.SECONDS
 
 object TransactionConverter {
 
-    fun toDomain(request: AuthorizeTransactionRequest): Pair<AccountId, TransactionType> {
+    fun toDomain(request: AuthorizeTransactionRequest): Triple<AccountId, TransactionType, Currency> {
         val accountId = ValueObjectFactory.createAccountId(value = request.accountId)
         val transactionType = ValueObjectFactory.createTransactionType(value = request.type)
+        val currency = ValueObjectFactory.createCurrency(value = request.currency)
 
-        return Pair(accountId, transactionType)
+        return Triple(accountId, transactionType, currency)
     }
 
     fun toResponse(transaction: Pair<Transaction, Money>): Response {
@@ -51,5 +52,3 @@ object TransactionConverter {
         return ValueObjectFactory.createMoney(amount = amount, currency = currency)
     }
 }
-
-

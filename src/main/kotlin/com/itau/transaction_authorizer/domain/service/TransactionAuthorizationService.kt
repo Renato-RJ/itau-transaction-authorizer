@@ -24,6 +24,7 @@ class TransactionAuthorizationService(
     /**
      * Autoriza uma transação (CREDIT ou DEBIT).
      *
+     * @param transactionId ID externo da transação
      * @param accountId ID da conta
      * @param type Tipo de transação
      * @param amount Valor
@@ -32,24 +33,27 @@ class TransactionAuthorizationService(
      * @throws InvalidAmountException se amount <= 0
      */
     override fun authorize(
+        transactionId: String,
         accountId: AccountId,
         type: TransactionType,
         amount: Money
     ): Pair<Transaction, Money> {
         return when (type) {
-            CREDIT -> authorizeCredit(accountId = accountId, amount = amount)
-            DEBIT -> authorizeDebit(accountId = accountId, amount = amount)
+            CREDIT -> authorizeCredit(transactionId = transactionId, accountId = accountId, amount = amount)
+            DEBIT -> authorizeDebit(transactionId = transactionId, accountId = accountId, amount = amount)
         }
     }
+
     @Transactional
     private fun authorizeCredit(
+        transactionId: String,
         accountId: AccountId,
         amount: Money
     ): Pair<Transaction, Money> {
         validateAmount(amount = amount)
         val account = getAccount(accountId = accountId)
 
-        val transaction = account.authorizeCredit(accountId = accountId, amount = amount)
+        val transaction = account.authorizeCredit(transactionId = transactionId, accountId = accountId, amount = amount)
 
         val balance = accountRepository.applyTransaction(accountId = accountId, transaction = transaction)
         transactionRepository.save(transaction = transaction)
@@ -59,13 +63,14 @@ class TransactionAuthorizationService(
 
     @Transactional
     private fun authorizeDebit(
+        transactionId: String,
         accountId: AccountId,
         amount: Money
     ): Pair<Transaction, Money> {
         validateAmount(amount = amount)
         val account = getAccount(accountId = accountId)
 
-        val transaction = account.authorizeDebit(accountId = accountId, amount = amount)
+        val transaction = account.authorizeDebit(transactionId = transactionId, accountId = accountId, amount = amount)
 
         val balance = accountRepository.applyTransaction(accountId = accountId, transaction = transaction)
         transactionRepository.save(transaction = transaction)
@@ -78,8 +83,8 @@ class TransactionAuthorizationService(
             ?: throw AccountNotFoundException(accountId = accountId.toString())
     }
 
-    private fun validateAmount(amount: Money){
-        if(amount.amount <= ZERO) throw InvalidAmountException(amount = amount.amount)
+    private fun validateAmount(amount: Money) {
+        if (amount.amount <= ZERO) throw InvalidAmountException(amount = amount.amount)
     }
 
 }
