@@ -1,7 +1,7 @@
 plugins {
 	kotlin("jvm") version "2.3.21"
 	kotlin("plugin.spring") version "2.3.21"
-	id("org.springframework.boot") version "4.1.0"
+	id("org.springframework.boot") version "3.5.15"
 	id("io.spring.dependency-management") version "1.1.7"
 	kotlin("plugin.jpa") version "2.3.21"
 }
@@ -20,18 +20,16 @@ repositories {
 }
 
 dependencies {
-	implementation("org.springframework.boot:spring-boot-micrometer-tracing-brave")
-	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
-	implementation("org.springframework.boot:spring-boot-starter-webmvc")
-	implementation("io.micrometer:micrometer-tracing-bridge-brave")
+	implementation("org.springframework.boot:spring-boot-starter-web")
+	implementation("org.springframework.boot:spring-boot-starter-jdbc")
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
-	implementation("tools.jackson.module:jackson-module-kotlin")
 	implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
-	implementation("com.fasterxml.jackson.core:jackson-databind")
+	runtimeOnly("org.postgresql:postgresql")
+	implementation("org.flywaydb:flyway-core")
+	implementation("org.flywaydb:flyway-database-postgresql")
+	implementation("org.postgresql:postgresql:42.7.7")
 	implementation("software.amazon.awssdk:sqs:2.20.145")
-	testImplementation("org.springframework.boot:spring-boot-micrometer-tracing-test")
-	testImplementation("org.springframework.boot:spring-boot-starter-data-jpa-test")
-	testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
+	testImplementation("org.springframework.boot:spring-boot-starter-test")
 	testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
