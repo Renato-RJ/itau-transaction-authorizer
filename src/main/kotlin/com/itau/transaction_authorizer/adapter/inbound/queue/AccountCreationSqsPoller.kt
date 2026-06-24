@@ -41,7 +41,7 @@ class AccountCreationSqsPoller(
         builder.build()
     }
 
-    @Scheduled(fixedDelayString = "300000")
+    @Scheduled(fixedDelayString = "5000", initialDelay = 5000)
     fun poll() {
         try {
             val receiveRequest = ReceiveMessageRequest.builder()
