@@ -3,6 +3,8 @@ Esta é uma aplicação de autorização de transações financeiras, responsáv
 
 A API recebe requisições de autorização contendo os dados da transação e aplica regras de validação e domínio para determinar se a transação pode ser aprovada.
 
+[Ir para instalação](BUILD.md) - [Sobre a arquitetura](ARQUITETURA.md) - [Sugestão estratégia de deploy](DEPLOY.md)
+
 ## Endpoint de Autorização
 
 `POST /transactions/{transactionId}`
