@@ -59,12 +59,13 @@ class AccountCreationSqsPoller(
 
         if (messages.isEmpty()) return
 
+        val accountIdList: MutableList<String> = mutableListOf()
+
         for (msg in messages) {
             try {
                 val event = objectMapper.readValue(msg.body(), CreateAccountEvent::class.java)
                 val domain = AccountCreationConverter.toDomain(event)
 
-                log.info("Processing account creation message for accountId={}", domain.accountId)
                 accountCreator.create(
                     accountId = domain.accountId,
                     owner = domain.owner,
@@ -78,9 +79,15 @@ class AccountCreationSqsPoller(
                     .build()
 
                 resilientSqsClient.deleteMessage(sqsClient = sqsClient, deleteRequest = deleteRequest)
+
+                accountIdList.add(domain.accountId.value)
             } catch (e: Exception) {
                 log.error("Failed to process message id={}, body={}", msg.messageId(), msg.body(), e)
             }
         }
+        log.info(
+            "account creation messages processed for {} accountIds={ {} }",
+            accountIdList.size, accountIdList.joinToString(" - ")
+        )
     }
 }

@@ -46,9 +46,9 @@ class AccountRepositoryAdapter(
             mapRow(rs)
         }
 
-        val result = rows.firstOrNull()
-        log.info("db_result operation=findById accountId={} found={}", accountId.value, result != null)
-        return result
+        return  rows.firstOrNull()?.also {
+            log.info("db_result operation=findById accountId={} found={}", accountId.value, true)
+        }
     }
 
     @Retry(name = "postgresWrite")
@@ -69,7 +69,6 @@ class AccountRepositoryAdapter(
             .addValue("status", account.status)
 
         jdbc.update(sql, params)
-        log.info("db_insert_ok operation=saveAccount accountId={}", account.id.value)
     }
 
     @CircuitBreaker(name = "postgresDb")
