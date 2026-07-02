@@ -4,7 +4,6 @@ import com.itau.transaction_authorizer.domain.core.entity.Transaction
 import com.itau.transaction_authorizer.domain.port.outbound.TransactionRepositoryPort
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker
 import io.github.resilience4j.retry.annotation.Retry
-import org.slf4j.LoggerFactory
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
 import org.springframework.stereotype.Repository
@@ -15,8 +14,6 @@ import java.time.ZoneOffset.UTC
 class TransactionRepositoryAdapter(
     private val jdbc: NamedParameterJdbcTemplate
 ) : TransactionRepositoryPort {
-
-    private val log = LoggerFactory.getLogger(TransactionRepositoryAdapter::class.java)
 
     @Retry(name = "postgresWrite")
     @CircuitBreaker(name = "postgresDb")
@@ -38,10 +35,5 @@ class TransactionRepositoryAdapter(
             .addValue("rejectionReason", transaction.rejectionReason)
 
         jdbc.update(sql, params)
-        log.info(
-            "db_insert_ok operation=saveTransaction transactionId={} accountId={}",
-            transaction.id.value,
-            transaction.accountId.value
-        )
     }
 }
