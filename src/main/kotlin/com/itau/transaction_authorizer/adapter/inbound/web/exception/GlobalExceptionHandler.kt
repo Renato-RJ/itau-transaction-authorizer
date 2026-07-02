@@ -64,8 +64,7 @@ class GlobalExceptionHandler {
             "unexpected_exception traceId={} type={} message={}",
             MDC.get("traceId"),
             ex::class.simpleName,
-            ex.message,
-            ex
+            ex.cause?.message?.let { it.substringAfter("Detail: ", it) }
         )
         return ResponseEntity.status(INTERNAL_SERVER_ERROR).body(
             ErrorResponse(message = "Erro interno do servidor", code = "INTERNAL_SERVER_ERROR")
