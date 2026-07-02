@@ -46,9 +46,7 @@ class AccountRepositoryAdapter(
             mapRow(rs)
         }
 
-        return  rows.firstOrNull()?.also {
-            log.info("db_result operation=findById accountId={} found={}", accountId.value, true)
-        }
+        return  rows.firstOrNull()
     }
 
     @Retry(name = "postgresWrite")
@@ -93,13 +91,6 @@ class AccountRepositoryAdapter(
                 val currentBalance =
                     psqlException.serverErrorMessage?.detail?.toBigDecimal() ?: ZERO
 
-                log.warn(
-                    "db_call_rejected operation=applyTransaction accountId={} transactionId={} reason=insufficient_funds available={}",
-                    accountId.value,
-                    transaction.id.value,
-                    currentBalance
-                )
-
                 throw InsufficientBalanceException(
                     availableBalance = Money.of(amount = currentBalance, currency = BRL),
                     requestedAmount = transaction.amount,
@@ -114,13 +105,6 @@ class AccountRepositoryAdapter(
             )
             throw ex
         }
-
-        log.info(
-            "db_call_ok operation=applyTransaction accountId={} transactionId={} newBalance={}",
-            accountId.value,
-            transaction.id.value,
-            result
-        )
         return result
     }
 

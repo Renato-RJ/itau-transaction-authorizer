@@ -38,10 +38,5 @@ class TransactionRepositoryAdapter(
             .addValue("rejectionReason", transaction.rejectionReason)
 
         jdbc.update(sql, params)
-        log.info(
-            "db_insert_ok operation=saveTransaction transactionId={} accountId={}",
-            transaction.id.value,
-            transaction.accountId.value
-        )
     }
 }
