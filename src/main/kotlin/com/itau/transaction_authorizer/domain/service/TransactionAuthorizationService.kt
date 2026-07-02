@@ -55,8 +55,8 @@ class TransactionAuthorizationService(
 
         val transaction = account.authorizeCredit(transactionId = transactionId, accountId = accountId, amount = amount)
 
-        val balance = accountRepository.applyTransaction(accountId = accountId, transaction = transaction)
         transactionRepository.save(transaction = transaction)
+        val balance = accountRepository.applyTransaction(accountId = accountId, transaction = transaction)
 
         return Pair(transaction, Money.of(amount = balance, currency = transaction.amount.currency))
     }
